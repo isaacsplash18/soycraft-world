@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+.vite/
+.vercel
+
+# --- added: standard exclusions ---
+.env
+.env.*
+!.env.example
+build/

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Soycraft World — Explore</title>
+    <!-- Mobile-first: lock zoom so the joystick / look-drag don't fight pinch-zoom. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#f4f1ea" />
+    <meta
+      name="description"
+      content="Explore the Soycraft world — a 3D mini-game to discover our pet carriers and strollers."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/ui/styles.css" />
+  </head>
+  <body>
+    <!-- Loading screen (hidden once the world + assets are ready) -->
+    <div id="loading-screen">
+      <div class="loading-card">
+        <img class="loading-logo-img" src="/brand/logo.png" alt="Soycraft" />
+        <div class="loader"></div>
+        <div class="loading-text">Loading the park…</div>
+        <div class="loading-progress">0%</div>
+      </div>
+    </div>
+
+    <!-- WebGL canvas mounts here -->
+    <div id="container"></div>
+
+    <!-- Breed selection — shown before the game starts -->
+    <div id="start-screen" class="overlay hidden">
+      <div class="card start-card">
+        <img class="start-logo" src="/brand/logo.png" alt="Soycraft" />
+        <h2>Build your dog</h2>
+        <p>Name your pup, pick a coat &amp; accessory, then explore.</p>
+        <div class="start-breed">
+          <span class="breed-label">🐶 Breed</span>
+          <select id="start-breed-select" aria-label="Choose dog breed"></select>
+        </div>
+        <button id="start-btn" class="cta start-btn">Start exploring 🐾</button>
+      </div>
+    </div>
+
+    <!-- HUD: discovery counter + wishlist badge + hints -->
+    <div id="hud">
+      <div id="discovery-counter">
+        <span class="paw">🐾</span>
+        <span id="discovery-count">0</span> / <span id="discovery-total">0</span>
+        <span class="discovery-label">discovered</span>
+      </div>
+      <!-- Wishlist badge button — hidden when empty, shown/updated by UI.js -->
+      <button id="wishlist-btn" class="wishlist-hud-btn hidden" aria-label="Open wishlist">
+        ♥ <span id="wishlist-count">0</span>
+      </button>
+      <div id="hint" class="hint">
+        <span class="hint-desktop">WASD move · mouse look · V view · E shop · B bark · P photo · T time</span>
+        <span class="hint-mobile">Drag left to move · drag right to look</span>
+      </div>
+    </div>
+
+    <!-- Mobile touch joystick mount (shown only on touch devices) -->
+    <div id="joystick-zone" aria-hidden="true"></div>
+
+    <!-- Product info card overlay (filled from config at runtime) -->
+    <div id="product-card" class="overlay hidden" role="dialog" aria-modal="true">
+      <div class="card">
+        <button class="card-close" id="product-card-close" aria-label="Close">×</button>
+        <div class="card-image">
+          <img id="product-card-img" src="" alt="" />
+        </div>
+        <div class="card-body">
+          <div class="card-cat" id="product-card-cat">Stroller</div>
+          <h2 id="product-card-name">Product</h2>
+          <p id="product-card-desc">Description</p>
+          <div class="card-foot">
+            <span id="product-card-price" class="price">S$0</span>
+            <div class="card-foot-actions">
+              <button id="product-card-save" class="save-btn" aria-label="Save to wishlist" aria-pressed="false">♡ Save</button>
+              <a id="product-card-shop" class="cta" href="#" target="_blank" rel="noopener">
+                Shop now →
+              </a>
+            </div>
+          </div>
+          <div class="e-hint">Press <kbd>E</kbd> to open the product page</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Link card overlay (external links — NOT discoverable items) -->
+    <div id="link-card" class="overlay hidden" role="dialog" aria-modal="true">
+      <div class="card link-card-inner">
+        <button class="card-close" id="link-card-close" aria-label="Close">×</button>
+        <div class="link-card-icon" id="link-card-icon">↗</div>
+        <div class="card-body">
+          <div class="card-cat" id="link-card-tag">LINK</div>
+          <h2 id="link-card-title">Title</h2>
+          <p id="link-card-sub">Subtitle</p>
+          <div class="card-foot">
+            <a id="link-card-cta" class="cta" href="#" target="_blank" rel="noopener">Open →</a>
+          </div>
+          <div class="e-hint">Press <kbd>E</kbd> to open</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Completion overlay with email capture -->
+    <div id="completion" class="overlay hidden" role="dialog" aria-modal="true">
+      <div class="card completion-card">
+        <div class="completion-emoji">🎉🐾</div>
+        <h2>You've explored the Soycraft world!</h2>
+        <p>You found every product. Want early access to drops &amp; offers?</p>
+        <form id="email-form" class="email-form" novalidate>
+          <input
+            id="email-input"
+            type="email"
+            inputmode="email"
+            autocomplete="email"
+            placeholder="you@email.com"
+            required
+          />
+          <button type="submit" class="cta">Notify me</button>
+        </form>
+        <p id="email-msg" class="email-msg" aria-live="polite"></p>
+        <button id="completion-replay" class="link-btn">Keep exploring</button>
+      </div>
+    </div>
+
+    <!-- Wishlist panel -->
+    <div id="wishlist-panel" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Wishlist">
+      <div class="card wishlist-card">
+        <button class="card-close" id="wishlist-close" aria-label="Close wishlist">×</button>
+        <div class="wishlist-header">
+          <h2>♥ Wishlist</h2>
+        </div>
+        <div id="wishlist-items-list" class="wishlist-items-list"></div>
+        <div class="wishlist-footer">
+          <button id="wishlist-checkout" class="cta wishlist-checkout-btn">
+            Checkout on soycraft.co →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
